@@ -17,7 +17,9 @@ The service requires the mu-session-id header to be present, this is typically p
 Create a new bbcdr report
 
 Returns `201 Created` if the report was created successfully.
+
 Returns `400 Bad Request` if the request body is missing information.
+
 Returns `401 Unauthorized` if the active session is missing information. It should contain at least the following information:
 ```
 @prefix session: <http://mu.semte.ch/vocabularies/session/>.
