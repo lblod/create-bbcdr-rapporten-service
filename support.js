@@ -41,6 +41,7 @@ const createReport = async function(activeSession, fileIdentifiers) {
   const reportIRI = `${BASE_IRI}/${id}`;
   const draft = 'http://data.lblod.info/document-statuses/concept';
   const draftID = 'concept';
+  const withFiles = fileIdentifiers.length > 0;
   await update(`
        PREFIX session: <http://mu.semte.ch/vocabularies/session>
        PREFIX foaf: <http://xmlns.com/foaf/0.1/>
@@ -52,20 +53,25 @@ const createReport = async function(activeSession, fileIdentifiers) {
        PREFIX adms:    <http://www.w3.org/ns/adms#>
        PREFIX bbcdr: <http://mu.semte.ch/vocabularies/ext/bbcdr/>
        WITH <http://mu.semte.ch/application>
-       INSERT {
+       ${withFiles ? 'INSERT' : 'INSERT DATA'} {
          ${sparqlEscapeUri(reportIRI)} a bbcdr:Report;
                                adms:status ${sparqlEscapeUri(draft)};
                                dcterms:created ${sparqlEscapeDateTime(now)};
                                dcterms:modified ${sparqlEscapeDateTime(now)};
                                ext:lastModifiedBy ${sparqlEscapeUri(activeSession.user)};
                                dcterms:subject ${sparqlEscapeUri(activeSession.group)};
-                               mu:uuid ${sparqlEscapeString(id)};
-                               nie:hasPart ?file.
+                               ${withFiles ? 'nie:hasPart ?file;' : ''}
+                               mu:uuid ${sparqlEscapeString(id)}.
        }
+       ${withFiles ?
+       `
        WHERE {
          ?file a nfo:FileDateObject;
                mu:uuid ?uuid.
          FILTER(?uuid IN ( ${fileIdentifiers.map((id) => sparqlEscapeString(id)).join(',')}))
+       }`
+       :
+       ''
        }`);
   const filesJSON = fileIdentifiers.map( (id) => {
     return {
