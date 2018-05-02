@@ -1,4 +1,4 @@
-import { app, query, update, uuid, sparqlEscapeString, sparqlEscapeDate, sparqlEscapeUri } from 'mu';
+import { app, query, update, uuid, sparqlEscapeString, sparqlEscapeDateTime, sparqlEscapeUri } from 'mu';
 const BASE_IRI = process.env.MU_BASE_IRI || "http://example.org/reports/";
 
 /**
@@ -55,8 +55,8 @@ const createReport = async function(activeSession, fileIdentifiers) {
        INSERT {
          ${sparqlEscapeUri(reportIRI)} a bbcdr:Report;
                                adms:status ${sparqlEscapeUri(draft)};
-                               dcterms:created ${sparqlEscapeDate(now)};
-                               dcterms:modified ${sparqlEscapeDate(now)};
+                               dcterms:created ${sparqlEscapeDateTime(now)};
+                               dcterms:modified ${sparqlEscapeDateTime(now)};
                                ext:lastModifiedBy ${sparqlEscapeUri(activeSession.user)};
                                dcterms:subject ${sparqlEscapeUri(activeSession.group)};
                                mu:uuid ${sparqlEscapeString(id)};
