@@ -19,7 +19,13 @@ const  fetchSession = async function(sessionURI) {
          ?group mu:uuid ?groupID.
          ?user mu:uuid ?userID.
        }`);
-  return result.results.bindings.length > 0 ?  result.results.bindings[0] : null;
+  if (result.results.bindings.length === 0) {
+    return null;
+  }
+  else {
+    const r = result.results.bindings[0];
+    return { user: r.user.value, group: r.group.value, groupID: r.groupID.value, userID: r.userID.value};
+  }
 };
 
 /**
