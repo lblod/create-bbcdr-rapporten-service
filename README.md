@@ -10,7 +10,7 @@ services:
     image: lblod/create-bbcdr-rapporten-service
 ```
 
-The service requires the mu-session-id header to be present, this is typically provided by the [https://github.com/mu-semtech/mu-identifier](mu-identifier) service.
+The service requires the mu-session-id header to be present, this is typically provided by the [mu-identifier](https://github.com/mu-semtech/mu-identifier) service.
 
 ## REST API
 ### POST /bbcdr-reports/
@@ -27,7 +27,7 @@ Returns `401 Unauthorized` if the active session is missing information. It shou
 <user> foaf:account <account>
 ```
 
-This information is present when logged in via the [](mock-login-service).
+This information is present when logged in via the [mock-login-service](https://github.com/lblod/mock-login-service).
 
 Returns `500 Internal Server Error` if something else fails.
 
