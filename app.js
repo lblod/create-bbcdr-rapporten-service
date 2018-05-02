@@ -8,7 +8,7 @@ app.post('/bbcdr-rapporten/', async function( req, res ) {
       const body = req.body;
       if (hasValidBody(body)) {
         const fileIdentifiers = body.data.relationships.files.data.map((obj) => obj.id);
-        const report = createReport(activeSession, fileIdentifiers);
+        const report = await createReport(activeSession, fileIdentifiers);
         res.status(201).send(report);
       }
       else {
