@@ -9,7 +9,7 @@ const BASE_IRI = process.env.MU_BASE_IRI || "http://example.org/reports/";
  */
 const  fetchSession = async function(sessionURI) {
   const result = await query(`
-       PREFIX session: <http://mu.semte.ch/vocabularies/session>
+       PREFIX session: <http://mu.semte.ch/vocabularies/session/>
        PREFIX foaf: <http://xmlns.com/foaf/0.1/>
        PREFIX mu:   <http://mu.semte.ch/vocabularies/core/>
        SELECT ?user ?group ?userID ?groupID
