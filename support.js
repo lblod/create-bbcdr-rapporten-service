@@ -14,14 +14,12 @@ const  fetchSession = async function(sessionURI) {
        PREFIX mu:   <http://mu.semte.ch/vocabularies/core/>
        SELECT ?user ?group ?userID ?groupID
        WHERE {
-         ${sparqlEscapeUri(sessionURI)} a session:Session;
-                                        (session:account / ^foaf:account) ?user;
-                                        foaf:member  ?group.
+         ${sparqlEscapeUri(sessionURI)} (session:account / ^foaf:account) ?user;
+                                        session:group  ?group.
          ?group mu:uuid ?groupID.
          ?user mu:uuid ?userID.
        }`);
-  console.log(result);
-  return result[0];
+  return result.results.bindings.length > 0 ?  result.results.bindings[0] : null;
 };
 
 /**
@@ -31,22 +29,27 @@ const  fetchSession = async function(sessionURI) {
  * @return 
  */
 const createReport = async function(activeSession, fileIdentifiers) {
-  const uuid = uuid();
+  const id = uuid();
   const now = new Date();
-  const reportIRI = `${BASE_IRI}/${uuid}`;
-  const draftID = '';
-  const draft = '';
+  const reportIRI = `${BASE_IRI}/${id}`;
+  const draft = 'http://data.lblod.info/document-statuses/concept';
   await update(`
        PREFIX session: <http://mu.semte.ch/vocabularies/session>
        PREFIX foaf: <http://xmlns.com/foaf/0.1/>
        PREFIX mu:   <http://mu.semte.ch/vocabularies/core/>
+       PREFIX mu:   <http://mu.semte.ch/vocabularies/ext/>
+       PREFIX nie:     <http://www.semanticdesktop.org/ontologies/2007/01/19/nie#>
+       PREFIX dcterms: <http://purl.org/dc/terms/>
+       PREFIX adms:    <http://www.w3.org/ns/adms#>
+       PREFIX bbcdr: <http://mu.semte.ch/vocabularies/ext/bbcdr/>
        INSERT {
-         ${sparqlEscapeUri(reportIRI)} a ${{bbcdr:Report}};
+         ${sparqlEscapeUri(reportIRI)} a bbcdr:Report;
                                dcterms:created ${sparqlEscapeDate(now)};
                                dcterms:modified ${sparqlEscapeDate(now)};
                                adms:status ${sparqlEscapeUri(draft)};
                                ext:lastModifiedBy ${sparqlEscapeUri(activeSession.user)};
                                dcterms:subject ${sparqlEscapeUri(activeSession.group)};
+                               mu:uuid ${sparqlEscapeString(id)};
                                nie:hasPart ?file.
        WHERE {
          ?file a nfo:FileDateObject;
@@ -104,7 +107,6 @@ const createReport = async function(activeSession, fileIdentifiers) {
 const hasValidBody = function(body) {
   if (!body.data) return false;
   const data = body.data;
-  console.log(data);
   if (data.type !== "bbcdr-rapporten") return false;
   if (!body.data.relationships) return false;
   if (!body.data.relationships.files) return false;
