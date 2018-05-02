@@ -13,6 +13,7 @@ const  fetchSession = async function(sessionURI) {
        PREFIX foaf: <http://xmlns.com/foaf/0.1/>
        PREFIX mu:   <http://mu.semte.ch/vocabularies/core/>
        SELECT ?user ?group ?userID ?groupID
+       FROM <http://mu.semte.ch/application>
        WHERE {
          ${sparqlEscapeUri(sessionURI)} (session:account / ^foaf:account) ?user;
                                         session:group  ?group.
@@ -32,35 +33,39 @@ const  fetchSession = async function(sessionURI) {
  * create the report, linked to the provided user, group and files
  *
  * @method createReport
- * @return 
+ * @return {Object} json api representation of the created report
  */
 const createReport = async function(activeSession, fileIdentifiers) {
   const id = uuid();
   const now = new Date();
   const reportIRI = `${BASE_IRI}/${id}`;
   const draft = 'http://data.lblod.info/document-statuses/concept';
+  const draftID = 'concept';
   await update(`
        PREFIX session: <http://mu.semte.ch/vocabularies/session>
        PREFIX foaf: <http://xmlns.com/foaf/0.1/>
        PREFIX mu:   <http://mu.semte.ch/vocabularies/core/>
-       PREFIX mu:   <http://mu.semte.ch/vocabularies/ext/>
+       PREFIX ext:   <http://mu.semte.ch/vocabularies/ext/>
        PREFIX nie:     <http://www.semanticdesktop.org/ontologies/2007/01/19/nie#>
+       PREFIX nfo: <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#>
        PREFIX dcterms: <http://purl.org/dc/terms/>
        PREFIX adms:    <http://www.w3.org/ns/adms#>
        PREFIX bbcdr: <http://mu.semte.ch/vocabularies/ext/bbcdr/>
+       WITH <http://mu.semte.ch/application>
        INSERT {
          ${sparqlEscapeUri(reportIRI)} a bbcdr:Report;
+                               adms:status ${sparqlEscapeUri(draft)};
                                dcterms:created ${sparqlEscapeDate(now)};
                                dcterms:modified ${sparqlEscapeDate(now)};
-                               adms:status ${sparqlEscapeUri(draft)};
                                ext:lastModifiedBy ${sparqlEscapeUri(activeSession.user)};
                                dcterms:subject ${sparqlEscapeUri(activeSession.group)};
                                mu:uuid ${sparqlEscapeString(id)};
                                nie:hasPart ?file.
+       }
        WHERE {
          ?file a nfo:FileDateObject;
                mu:uuid ?uuid.
-         FILTER(?uuid IN ( ${fileIdentifiers.map((id) => sparqlEscapeString(id)).join(',')}));
+         FILTER(?uuid IN ( ${fileIdentifiers.map((id) => sparqlEscapeString(id)).join(',')}))
        }`);
   const filesJSON = fileIdentifiers.map( (id) => {
     return {
@@ -70,7 +75,7 @@ const createReport = async function(activeSession, fileIdentifiers) {
   });
   return {
     links: {
-      self: `/bbcdr-rapporten/${uuid}`
+      self: `/bbcdr-rapporten/${id}`
     },
     data: {
       attributes: {
@@ -93,12 +98,12 @@ const createReport = async function(activeSession, fileIdentifiers) {
         },
         bestuurseenheid: {
           "links": {
-            "self": `/gebruikers/${activeSession.groupID}`
+            "self": `/bestuurseenheid/${activeSession.groupID}`
           },
           "data": { "type": "bestuurseenheden", "id": activeSession.groupID }
         }
       },
-      id: uuid,
+      id: id,
       type: 'bbcdr-rapporten'
     }
   };
