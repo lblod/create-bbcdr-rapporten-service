@@ -75,7 +75,7 @@ const createReport = async function(activeSession, fileIdentifiers) {
   });
   return {
     links: {
-      self: `/bbcdr-rapporten/${id}`
+      self: `/bbcdr-reports/${id}`
     },
     data: {
       attributes: {
@@ -104,7 +104,7 @@ const createReport = async function(activeSession, fileIdentifiers) {
         }
       },
       id: id,
-      type: 'bbcdr-rapporten'
+      type: 'bbcdr-reports'
     }
   };
 };
@@ -118,7 +118,7 @@ const createReport = async function(activeSession, fileIdentifiers) {
 const hasValidBody = function(body) {
   if (!body.data) return false;
   const data = body.data;
-  if (data.type !== "bbcdr-rapporten") return false;
+  if (data.type !== "bbcdr-reports") return false;
   if (!body.data.relationships) return false;
   if (!body.data.relationships.files) return false;
   return true;

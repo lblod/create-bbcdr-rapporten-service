@@ -1,6 +1,6 @@
 import { app } from 'mu';
 import { fetchSession, createReport, hasValidBody } from './support';
-app.post('/bbcdr-rapporten/', async function( req, res ) {
+app.post('/bbcdr-reports/', async function( req, res ) {
   try {
     const sessionURI = req.headers['mu-session-id'];
     const activeSession = await fetchSession(sessionURI);
