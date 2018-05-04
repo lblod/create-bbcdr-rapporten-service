@@ -66,7 +66,7 @@ const createReport = async function(activeSession, fileIdentifiers) {
        ${withFiles ?
        `
        WHERE {
-         ?file a nfo:FileDateObject;
+         ?file a nfo:FileDataObject;
                mu:uuid ?uuid.
          FILTER(?uuid IN ( ${fileIdentifiers.map((id) => sparqlEscapeString(id)).join(',')}))
        }`
