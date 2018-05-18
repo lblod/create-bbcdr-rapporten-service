@@ -224,12 +224,23 @@ const buildJSONAPIResponse = function(reportID, created, modified, fileIdentifie
  * @method createReport
  * @return {Object} json api representation of the created report
  */
-const createReport = async function(activeSession, fileIdentifiers) {
+const createReport = async function(activeSession, relationships) {
+  const fileIdentifiers = relationships.files.data.map((obj) => obj.id);
   const id = uuid();
   const now = new Date();
   const reportIRI = `${BASE_IRI}${id}`;
   const draft = 'http://data.lblod.info/document-statuses/concept';
   const draftID = 'concept';
+  let status, statusID;
+  if (relationships.status) {
+    status = await fetchStatus(relationships.status.data.id);
+    statusID = relationships.status.data.id;
+  }
+  else {
+    status = draft;
+    statusID = draftID;
+  }
+
   const withFiles = fileIdentifiers.length > 0;
   await update(`
        PREFIX session: <http://mu.semte.ch/vocabularies/session>
@@ -244,7 +255,7 @@ const createReport = async function(activeSession, fileIdentifiers) {
        WITH <http://mu.semte.ch/application>
        ${withFiles ? 'INSERT' : 'INSERT DATA'} {
          ${sparqlEscapeUri(reportIRI)} a bbcdr:Report;
-                               adms:status ${sparqlEscapeUri(draft)};
+                               adms:status ${sparqlEscapeUri(status)};
                                dcterms:created ${sparqlEscapeDateTime(now)};
                                dcterms:modified ${sparqlEscapeDateTime(now)};
                                ext:lastModifiedBy ${sparqlEscapeUri(activeSession.user)};
@@ -262,7 +273,7 @@ const createReport = async function(activeSession, fileIdentifiers) {
        :
        ''
        }`);
-  return buildJSONAPIResponse(id, now, now, fileIdentifiers, draftID, activeSession.userID, activeSession.groupID );
+  return buildJSONAPIResponse(id, now, now, fileIdentifiers, statusID, activeSession.userID, activeSession.groupID );
 };
 
 const hasValidBody = function(body) {
