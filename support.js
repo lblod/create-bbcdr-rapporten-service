@@ -25,13 +25,14 @@ const parseResult = function(result) {
 const  fetchSession = async function(sessionURI) {
   const result = await query(`
        PREFIX session: <http://mu.semte.ch/vocabularies/session/>
+       PREFIX ext: <http://mu.semte.ch/vocabularies/ext/>
        PREFIX foaf: <http://xmlns.com/foaf/0.1/>
        PREFIX mu:   <http://mu.semte.ch/vocabularies/core/>
        SELECT ?user ?group ?userID ?groupID
        FROM <http://mu.semte.ch/application>
        WHERE {
          ${sparqlEscapeUri(sessionURI)} (session:account / ^foaf:account) ?user;
-                                        session:group  ?group.
+                                        ext:sessionGroup  ?group.
          ?group mu:uuid ?groupID.
          ?user mu:uuid ?userID.
        }`);
@@ -281,7 +282,7 @@ const hasValidBody = function(body) {
   const data = body.data;
   if (data.type !== "bbcdr-reports") return false;
   return true;
-}
+};
 
 /**
  * validate the request body
