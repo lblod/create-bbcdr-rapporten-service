@@ -22,14 +22,15 @@ const parseResult = function(result) {
  * @method fetchSession
  * @return {Object}
  */
-const  fetchSession = async function(sessionURI) {
+const fetchSession = async function(sessionURI) {
   const result = await query(`
        PREFIX session: <http://mu.semte.ch/vocabularies/session/>
        PREFIX ext: <http://mu.semte.ch/vocabularies/ext/>
        PREFIX foaf: <http://xmlns.com/foaf/0.1/>
        PREFIX mu:   <http://mu.semte.ch/vocabularies/core/>
+
        SELECT ?user ?group ?userID ?groupID
-       FROM <http://mu.semte.ch/application>
+       FROM <${process.env.MU_APPLICATION_GRAPH}>
        WHERE {
          ${sparqlEscapeUri(sessionURI)} (session:account / ^foaf:account) ?user;
                                         ext:sessionGroup  ?group.
@@ -57,8 +58,9 @@ const fetchReport = async function(reportId) {
     PREFIX dcterms: <http://purl.org/dc/terms/>
     PREFIX adms:    <http://www.w3.org/ns/adms#>
     PREFIX bbcdr: <http://mu.semte.ch/vocabularies/ext/bbcdr/>
+
     SELECT ?reportIRI ?status ?statusID ?created ?modified ?lastModifiedBy ?subject
-    FROM <http://mu.semte.ch/application>
+    FROM <${process.env.MU_APPLICATION_GRAPH}>
     WHERE {
       ?reportIRI a bbcdr:Report;
                  adms:status ?status;
@@ -79,8 +81,9 @@ const fetchFilesForReport = async function(reportIRI) {
        PREFIX mu:   <http://mu.semte.ch/vocabularies/core/>
        PREFIX nfo: <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#>
        PREFIX bbcdr: <http://mu.semte.ch/vocabularies/ext/bbcdr/>
+
        SELECT ?iri ?uuid
-       FROM <http://mu.semte.ch/application>
+       FROM <${process.env.MU_APPLICATION_GRAPH}>
        WHERE {
          ${reportIRI} a bbcdr:Report;
                nie:hasPart ?iri.
@@ -92,8 +95,9 @@ const fetchFiles = async function(fileIdentifiers) {
   const files = await query(`
        PREFIX mu:   <http://mu.semte.ch/vocabularies/core/>
        PREFIX nfo: <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#>
+
        SELECT ?file ?uuid
-       FROM <http://mu.semte.ch/application>
+       FROM <${process.env.MU_APPLICATION_GRAPH}>
        WHERE {
          ?file a nfo:FileDataObject;
                mu:uuid ?uuid.
@@ -106,8 +110,9 @@ const fetchStatus = async function(id) {
   const result = await query(`
        PREFIX mu:   <http://mu.semte.ch/vocabularies/core/>
        PREFIX nfo: <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#>
+
        SELECT ?concept
-       FROM <http://mu.semte.ch/application>
+       FROM <${process.env.MU_APPLICATION_GRAPH}>
        WHERE {
          ?concept mu:uuid ${sparqlEscapeString(id)}.
       }
@@ -146,7 +151,8 @@ const updateReport = async function(report, reportID, relationships, activeSessi
        PREFIX dcterms: <http://purl.org/dc/terms/>
        PREFIX adms:    <http://www.w3.org/ns/adms#>
        PREFIX bbcdr: <http://mu.semte.ch/vocabularies/ext/bbcdr/>
-       WITH <http://mu.semte.ch/application>
+
+       WITH <${process.env.MU_APPLICATION_GRAPH}>
        DELETE {
           ${reportIRI} dcterms:modified ?modified;
                        dcterms:subject ?subject;
@@ -253,7 +259,8 @@ const createReport = async function(activeSession, relationships) {
        PREFIX dcterms: <http://purl.org/dc/terms/>
        PREFIX adms:    <http://www.w3.org/ns/adms#>
        PREFIX bbcdr: <http://mu.semte.ch/vocabularies/ext/bbcdr/>
-       WITH <http://mu.semte.ch/application>
+
+       WITH <${process.env.MU_APPLICATION_GRAPH}>
        ${withFiles ? 'INSERT' : 'INSERT DATA'} {
          ${sparqlEscapeUri(reportIRI)} a bbcdr:Report;
                                adms:status ${sparqlEscapeUri(status)};
