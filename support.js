@@ -152,23 +152,29 @@ const updateReport = async function(report, reportID, relationships, activeSessi
        PREFIX adms:    <http://www.w3.org/ns/adms#>
        PREFIX bbcdr: <http://mu.semte.ch/vocabularies/ext/bbcdr/>
 
-       WITH <${process.env.MU_APPLICATION_GRAPH}>
        DELETE {
-          ${reportIRI} dcterms:modified ?modified;
-                       dcterms:subject ?subject;
-                       ext:lastModifiedBy ?lastModified.
-          ${deleteStatements.join(".\n")}
-       }
-       INSERT {
-          ${reportIRI} dcterms:modified ${sparqlEscapeDateTime(now)};
-                       dcterms:subject ${sparqlEscapeUri(activeSession.group)};
-                       ext:lastModifiedBy ${sparqlEscapeUri(activeSession.user)}.
-          ${insertStatements.join(".\n")}
+          GRAPH <${process.env.MU_APPLICATION_GRAPH}> {
+              ${reportIRI} dcterms:modified ?modified;
+                           dcterms:subject ?subject;
+                           ext:lastModifiedBy ?lastModified.
+              ${deleteStatements.join(".\n")}
+          }
        }
        WHERE {
           ${reportIRI} dcterms:modified ?modified;
                        dcterms:subject ?subject;
                        ext:lastModifiedBy ?lastModified.
+       }
+
+       ;
+
+       INSERT DATA {
+          GRAPH <${process.env.MU_APPLICATION_GRAPH}> {
+              ${reportIRI} dcterms:modified ${sparqlEscapeDateTime(now)};
+                           dcterms:subject ${sparqlEscapeUri(activeSession.group)};
+                           ext:lastModifiedBy ${sparqlEscapeUri(activeSession.user)}.
+              ${insertStatements.join(".\n")}
+          }
        }
 `);
   return buildJSONAPIResponse(
@@ -260,9 +266,9 @@ const createReport = async function(activeSession, relationships) {
        PREFIX adms:    <http://www.w3.org/ns/adms#>
        PREFIX bbcdr: <http://mu.semte.ch/vocabularies/ext/bbcdr/>
 
-       WITH <${process.env.MU_APPLICATION_GRAPH}>
        ${withFiles ? 'INSERT' : 'INSERT DATA'} {
-         ${sparqlEscapeUri(reportIRI)} a bbcdr:Report;
+          GRAPH <${process.env.MU_APPLICATION_GRAPH}> {
+             ${sparqlEscapeUri(reportIRI)} a bbcdr:Report;
                                adms:status ${sparqlEscapeUri(status)};
                                dcterms:created ${sparqlEscapeDateTime(now)};
                                dcterms:modified ${sparqlEscapeDateTime(now)};
@@ -270,13 +276,15 @@ const createReport = async function(activeSession, relationships) {
                                dcterms:subject ${sparqlEscapeUri(activeSession.group)};
                                ${withFiles ? 'nie:hasPart ?file;' : ''}
                                mu:uuid ${sparqlEscapeString(id)}.
+          }
        }
        ${withFiles ?
        `
        WHERE {
-         ?file a nfo:FileDataObject;
-               mu:uuid ?uuid.
-         FILTER(?uuid IN ( ${fileIdentifiers.map((id) => sparqlEscapeString(id)).join(',')}))
+          ?file a nfo:FileDataObject;
+                mu:uuid ?uuid.
+
+          FILTER(?uuid IN ( ${fileIdentifiers.map((id) => sparqlEscapeString(id)).join(',')}))
        }`
        :
        ''
