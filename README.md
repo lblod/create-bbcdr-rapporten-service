@@ -38,7 +38,7 @@ Returns `500 Internal Server Error` if something else fails.
 ```
 services:
   createreports:
-    image: semtech/mu-javascript-template:1.2.1
+    image: semtech/mu-javascript-template
     ports:
       - 8888:80
     environment:
